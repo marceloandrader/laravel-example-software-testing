@@ -26,4 +26,16 @@ class CrearEstudianteTest extends TestCase
 
         $response->assertStatus(201);
     }
+
+    public function test_crear_un_estudiante_mayor_de_edad()
+    {
+        $response = $this->post('/estudiantes', [
+            'apellidos' => 'Andrade',
+            'nombres' => 'Marcelo',
+            'fecha_de_nacimiento' => date_create('20 years ago')->format('Y-m-d'),
+            'ciudad_de_nacimiento' => 'Tulcán',
+        ]);
+
+        $response->assertStatus(422);
+    }
 }

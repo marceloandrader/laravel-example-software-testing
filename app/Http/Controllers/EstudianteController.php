@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Estudiante;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Illuminate\Support\Facades\Validator;
 
 class EstudianteController extends Controller
 {
@@ -37,12 +38,29 @@ class EstudianteController extends Controller
     public function store(Request $request)
     {
         $data = $request->all();
+        $validator = Validator::make($data, [
+            'apellidos' => 'required',
+            'nombres' => 'required',
+            'ciudad_de_nacimiento' => 'required',
+            'fecha_de_nacimiento' => 'required|date:Y-m-d',
+        ]);
 
         $estudiante = new Estudiante();
         $estudiante->apellidos = $data['apellidos'];
         $estudiante->nombres = $data['nombres'];
         $estudiante->fecha_de_nacimiento = $data['fecha_de_nacimiento'];
         $estudiante->ciudad_de_nacimiento = $data['ciudad_de_nacimiento'];
+
+        $validator->after(function ($validator) use ($estudiante) {
+            if ($estudiante->getEdad() > 18) {
+                $validator->errors()->add('fecha_de_nacimiento', 'El estudiante ya es mayor de edad');
+            }
+        });
+
+        if ($validator->fails()) {
+            return response()
+                ->json(['errors' => $validator->errors()], Response::HTTP_UNPROCESSABLE_ENTITY);
+        }
 
         $estudiante->save();
 
